@@ -1,1 +1,1 @@
-# CustomeSupportAI
+# CustomerSupportAI
