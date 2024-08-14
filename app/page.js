@@ -1,6 +1,7 @@
 'use client'
 
-import { Box, Button, Stack, TextField } from '@mui/material'
+import { Box, Button, Stack, TextField, IconButton } from '@mui/material'
+import GitHubIcon from '@mui/icons-material/GitHub';
 import { useEffect, useRef, useState } from 'react'
 
 export default function Home() {
@@ -83,6 +84,7 @@ export default function Home() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
   return (
     <Box
       width="100vw"
@@ -91,6 +93,8 @@ export default function Home() {
       flexDirection="column"
       justifyContent="center"
       alignItems="center"
+      bgcolor="black"
+      position="relative"
     >
       <Stack
         direction={'column'}
@@ -139,6 +143,25 @@ export default function Home() {
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={isLoading}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: 'white',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'white',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'white',
+                },
+              },
+              '& .MuiInputLabel-root': {
+                color: 'white',
+              },
+              '& .MuiInputLabel-root.Mui-focused': {
+                color: 'white',
+              },
+            }}
           />
           <Button
             variant="contained"
@@ -149,6 +172,16 @@ export default function Home() {
           </Button>
         </Stack>
       </Stack>
+      <Box position="absolute" bottom={16} right={16}>
+        <IconButton
+          color="inherit"
+          href="https://github.com/simrangoel0/CustomerSupportAI"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <GitHubIcon sx={{ color: 'white', fontSize: 40 }} />
+        </IconButton>
+      </Box>
     </Box>
   )
 }
