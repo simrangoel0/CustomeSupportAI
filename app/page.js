@@ -1,54 +1,77 @@
 'use client'
 
-import { Box, Button, Stack, TextField, IconButton } from '@mui/material'
+import { Box, Button, Stack, TextField, IconButton } from '@mui/material';
 import GitHubIcon from '@mui/icons-material/GitHub';
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react';
+
+const HEADSTARTER_PROMPT = `
+Headstarter offers a 7-week software engineering fellowship designed to bridge the gap between academic learning and real-world experience. The program is focused on hands-on project development, including building five AI projects, participating in five weekend hackathons, and completing a final project with a goal of reaching 1,000 users or generating $1,000 in revenue. Fellows will also receive interview preparation, resume reviews, and feedback from professional software engineers. The fellowship is open to high school students, college students, and graduate students passionate about software engineering, aiming to build their skills and boost their resumes.
+
+Applicants must be proficient in at least one programming language and commit 20 hours per week. The program includes AI coaching calls, mock interviews, and both virtual and in-person meetups. Weekly projects are submitted for peer feedback, and those who participate gain access to hackathons and team-based evaluations. In the final week, participants will demo their projects to software engineers, with the possibility of being contacted by companies for job opportunities. The fellowship is designed to prepare participants for successful careers in tech by providing practical experience, community support, and direct industry feedback.
+
+When asked to output in bullet point format, each bullet point should be on a new line, like this:
+- Bullet point 1
+- Bullet point 2
+- Bullet point 3
+`;
 
 export default function Home() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
       content: "Hi! I'm the Headstarter support assistant. How can I help you today?",
     },
-  ])
-  const [message, setMessage] = useState('')
+  ]);
+  const [message, setMessage] = useState('');
+  const [contextSent, setContextSent] = useState(false); // Track if context has been sent
 
   const sendMessage = async () => {
     if (!message.trim()) return;
-  
+
     setIsLoading(true);
     setMessage('');
+
+    // Only send the context with the first message
+    let messagesToSend = messages;
+    if (!contextSent) {
+      messagesToSend = [
+        { role: 'system', content: HEADSTARTER_PROMPT },
+        ...messages,
+      ];
+      setContextSent(true);
+    }
+
     setMessages((messages) => [
       ...messages,
       { role: 'user', content: message },
       { role: 'assistant', content: '' },
     ]);
-  
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify([...messages, { role: 'user', content: message }]),
+        body: JSON.stringify([...messagesToSend, { role: 'user', content: message }]),
       });
-  
+
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-  
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-  
+
       let responseContent = '';
-  
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         responseContent += decoder.decode(value, { stream: true });
       }
-  
+
       setMessages((messages) => {
         let lastMessage = messages[messages.length - 1];
         let otherMessages = messages.slice(0, messages.length - 1);
@@ -66,24 +89,24 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }
-  
+  };
+
   const handleKeyPress = (event) => {
     if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault()
-      sendMessage()
+      event.preventDefault();
+      sendMessage();
     }
-  }
+  };
 
-  const messagesEndRef = useRef(null)
+  const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    scrollToBottom();
+  }, [messages]);
 
   return (
     <Box
@@ -128,9 +151,9 @@ export default function Home() {
                 color="white"
                 borderRadius={16}
                 p={3}
-              >
-                {message.content}
-              </Box>
+                // Render message content as HTML
+                dangerouslySetInnerHTML={{ __html: message.content.replace(/\n/g, '<br />') }}
+              />
             </Box>
           ))}
           <div ref={messagesEndRef} />
@@ -161,6 +184,7 @@ export default function Home() {
               '& .MuiInputLabel-root.Mui-focused': {
                 color: 'white',
               },
+              input: { color: 'white' }, // Makes the typed text white
             }}
           />
           <Button
@@ -183,5 +207,5 @@ export default function Home() {
         </IconButton>
       </Box>
     </Box>
-  )
+  );
 }
